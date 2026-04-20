@@ -62,8 +62,8 @@ export default function Experience({ experiences }: { experiences: Experience[] 
               >
                 {/* Simplified Timeline Line & Dot */}
                 <div className="flex flex-col items-center shrink-0 pt-3">
-                  <div className="w-12 h-12 rounded-2xl bg-background border-2 border-primary/30 flex items-center justify-center group-hover:border-primary transition-colors text-primary shadow-lg">
-                    {experiences.length - idx}
+                  <div className="w-12 h-12 rounded-2xl bg-background border-2 border-primary/30 flex items-center justify-center group-hover:border-primary transition-colors text-primary shadow-lg font-bold">
+                    {idx + 1}
                   </div>
                   {idx !== experiences.length - 1 && (
                     <div className="w-0.5 h-32 bg-gradient-to-b from-primary/30 to-transparent mt-4" />

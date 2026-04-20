@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { Plus, Trash2, User, Briefcase, FolderKanban, LogOut, Pen, Image as ImageIcon, GripVertical } from "lucide-react";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
 import ConfirmModal from "@/components/ConfirmModal";
@@ -41,6 +41,10 @@ export default function AdminForm({ profile, projects, experiences }: { profile:
   const [errorModalShow, setErrorModalShow] = useState(false);
   const [errorModalMsg, setErrorModalMsg] = useState("");
 
+  // Profile update confirm state
+  const [showProfileConfirm, setShowProfileConfirm] = useState(false);
+  const profileFormRef = useRef<HTMLFormElement>(null);
+
   // Reorder state
   const [localProjects, setLocalProjects] = useState(projects);
   const [localExperiences, setLocalExperiences] = useState(experiences);
@@ -48,6 +52,12 @@ export default function AdminForm({ profile, projects, experiences }: { profile:
   // Sync local state when props change (from server)
   useEffect(() => { setLocalProjects(projects); }, [projects]);
   useEffect(() => { setLocalExperiences(experiences); }, [experiences]);
+
+  const triggerCropper = (aspectRatio: number, callback: (file: File) => void) => {
+    setCropAspectRatio(aspectRatio);
+    setOnCropComplete(() => callback);
+    setCropperOpen(true);
+  };
 
   const handleAction = async (action: Function, formData?: FormData | string, formElement?: HTMLFormElement) => {
     // For delete actions, we handle confirmation via modal
@@ -158,77 +168,114 @@ export default function AdminForm({ profile, projects, experiences }: { profile:
       <AnimatePresence mode="wait">
         {activeTab === "profile" && (
           <form
+              ref={profileFormRef}
               onSubmit={(e) => {
                 e.preventDefault();
-                const fd = new FormData(e.currentTarget);
-                handleAction(updateProfile, fd, e.currentTarget);
+                setShowProfileConfirm(true);
               }}
               encType="multipart/form-data"
               className="bg-card p-8 rounded-3xl border border-border shadow-2xl space-y-8"
             >
-              <div className="flex items-center gap-6">
-                <div className="w-24 h-24 rounded-2xl overflow-hidden bg-secondary border border-border flex items-center justify-center relative group">
-                  {croppedImages["avatar"] ? (
-                    <img src={URL.createObjectURL(croppedImages["avatar"])} className="w-full h-full object-cover" />
-                  ) : profile?.avatarUrl ? (
-                    <img src={profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                  ) : (
-                    <User size={40} className="text-muted-foreground" />
-                  )}
+              {/* Hero Section */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 text-primary">
+                  <User size={20} className="stroke-[3]" />
+                  <h3 className="text-lg font-bold tracking-tight uppercase">Hero Section</h3>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => triggerCropper(1, (file) => setCroppedImages({ ...croppedImages, avatar: file }))}
-                  className="px-6 py-3 bg-secondary hover:bg-secondary/80 rounded-xl font-medium transition-all"
-                >
-                  Change Photo
-                </button>
-              </div>
-              <div className="grid md:grid-cols-2 gap-6">
+                <div className="flex items-center gap-6">
+                  <div className="w-24 h-24 rounded-2xl overflow-hidden bg-secondary border border-border flex items-center justify-center relative group">
+                    {profile?.avatarUrl || croppedImages.avatar ? (
+                      <img 
+                        src={croppedImages.avatar ? URL.createObjectURL(croppedImages.avatar) : profile.avatarUrl} 
+                        className="w-full h-full object-cover" 
+                      />
+                    ) : (
+                      <User size={40} className="text-muted-foreground" />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => triggerCropper(1, (file) => setCroppedImages({ ...croppedImages, avatar: file }))}
+                      className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-bold"
+                    >
+                      Change
+                    </button>
+                    <input type="file" name="avatar" className="hidden" ref={(el) => {
+                      if (el && croppedImages["avatar"]) {
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(croppedImages["avatar"]);
+                        el.files = dataTransfer.files;
+                      }
+                    }} />
+                  </div>
+                  <div className="flex-1 space-y-4">
+                    <input name="name" defaultValue={profile?.name} placeholder="Full Name" required maxLength={30} className="w-full bg-background border border-border rounded-xl p-3 h-12" />
+                    <input name="role" defaultValue={profile?.role} placeholder="Professional Role" required maxLength={50} className="w-full bg-background border border-border rounded-xl p-3 h-12" />
+                  </div>
+                </div>
                 <div className="space-y-1">
-                  <input name="name" defaultValue={profile?.name} placeholder="Name" required maxLength={30} className="w-full bg-background border border-border rounded-xl p-3 h-12" onChange={(e) => setCharCounts({...charCounts, name: e.target.value.length})} />
-                  <p className="text-[10px] text-right text-muted-foreground">{charCounts.name || profile?.name?.length || 0}/30</p>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Typing Texts (separate with semicolon ;)</label>
+                  <input name="typingTexts" defaultValue={profile?.typingTexts} placeholder="Building the future;Designing experiences..." required maxLength={255} className="w-full bg-background border border-border rounded-xl p-3 h-12" />
                 </div>
-                <div className="space-y-1">
-                  <input name="role" defaultValue={profile?.role} placeholder="Role" required maxLength={50} className="w-full bg-background border border-border rounded-xl p-3 h-12" onChange={(e) => setCharCounts({...charCounts, role: e.target.value.length})} />
-                  <p className="text-[10px] text-right text-muted-foreground">{charCounts.role || profile?.role?.length || 0}/50</p>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <textarea name="bio" defaultValue={profile?.bio} placeholder="Bio" rows={4} required maxLength={255} className="w-full bg-background border border-border rounded-xl p-4" onChange={(e) => setCharCounts({...charCounts, bio: e.target.value.length})} />
-                <p className="text-[10px] text-right text-muted-foreground">{charCounts.bio || profile?.bio?.length || 0}/255</p>
-              </div>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-1">
-                  <input name="email" defaultValue={profile?.email} placeholder="Email" required maxLength={30} className="w-full bg-background border border-border rounded-xl p-3 h-12" onChange={(e) => setCharCounts({...charCounts, email: e.target.value.length})} />
-                  <p className="text-[10px] text-right text-muted-foreground">{charCounts.email || profile?.email?.length || 0}/30</p>
-                </div>
-                <div className="space-y-1">
-                  <input name="typingTexts" defaultValue={profile?.typingTexts} placeholder="Typing Texts (semicolon separated)" required maxLength={255} className="w-full bg-background border border-border rounded-xl p-3 h-12" />
-                </div>
-                <input name="githubUrl" defaultValue={profile?.githubUrl} placeholder="GitHub URL" maxLength={255} className="w-full bg-background border border-border rounded-xl p-3 h-12" />
-                <input name="linkedinUrl" defaultValue={profile?.linkedinUrl} placeholder="LinkedIn URL" maxLength={255} className="w-full bg-background border border-border rounded-xl p-3 h-12" />
-                <input name="twitterUrl" defaultValue={profile?.twitterUrl} placeholder="Twitter URL" maxLength={255} className="w-full bg-background border border-border rounded-xl p-3 h-12" />
               </div>
 
-              <div className="border-t border-border pt-8 mt-4">
-                <h3 className="text-lg font-bold mb-6">About Statistics</h3>
+              <div className="h-px bg-border my-8" />
+
+              {/* About Section */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 text-primary">
+                  <Pen size={20} className="stroke-[3]" />
+                  <h3 className="text-lg font-bold tracking-tight uppercase">About Section</h3>
+                </div>
+                <div className="space-y-1">
+                  <textarea name="bio" defaultValue={profile?.bio} placeholder="Professional Biography" required maxLength={255} className="w-full bg-background border border-border rounded-xl p-4 min-h-[120px]" onChange={(e) => setCharCounts({...charCounts, bio: e.target.value.length})} />
+                  <p className="text-[10px] text-right text-muted-foreground">{charCounts.bio || profile?.bio?.length || 0}/255</p>
+                </div>
+                
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   <div>
-                    <label className="text-xs font-bold text-muted-foreground mb-2 block uppercase">Years Exp</label>
-                    <input name="yearsExp" defaultValue={profile?.yearsExp?.replace(/\D/g, '') || "5"} placeholder="e.g. 5" maxLength={5} className="w-full bg-background border border-border rounded-xl p-3 h-12" onKeyPress={(e) => { if (!/[0-9]/.test(e.key)) e.preventDefault(); }} />
+                    <label className="text-[10px] font-bold text-muted-foreground mb-2 block uppercase">Years Exp</label>
+                    <input name="yearsExp" defaultValue={profile?.yearsExp?.replace(/\D/g, '') || "5"} placeholder="e.g. 5" maxLength={5} className="w-full bg-background border border-border rounded-xl p-3 h-12 text-center" onKeyPress={(e) => { if (!/[0-9]/.test(e.key)) e.preventDefault(); }} />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-muted-foreground mb-2 block uppercase">Projects</label>
-                    <input name="projectsDone" defaultValue={profile?.projectsDone?.replace(/\D/g, '') || "40"} placeholder="e.g. 40" maxLength={5} className="w-full bg-background border border-border rounded-xl p-3 h-12" onKeyPress={(e) => { if (!/[0-9]/.test(e.key)) e.preventDefault(); }} />
+                    <label className="text-[10px] font-bold text-muted-foreground mb-2 block uppercase">Projects</label>
+                    <input name="projectsDone" defaultValue={profile?.projectsDone?.replace(/\D/g, '') || "40"} placeholder="e.g. 40" maxLength={5} className="w-full bg-background border border-border rounded-xl p-3 h-12 text-center" onKeyPress={(e) => { if (!/[0-9]/.test(e.key)) e.preventDefault(); }} />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-muted-foreground mb-2 block uppercase">Clients</label>
-                    <input name="clientsHappy" defaultValue={profile?.clientsHappy?.replace(/\D/g, '') || "25"} placeholder="e.g. 25" maxLength={5} className="w-full bg-background border border-border rounded-xl p-3 h-12" onKeyPress={(e) => { if (!/[0-9]/.test(e.key)) e.preventDefault(); }} />
+                    <label className="text-[10px] font-bold text-muted-foreground mb-2 block uppercase">Clients</label>
+                    <input name="clientsHappy" defaultValue={profile?.clientsHappy?.replace(/\D/g, '') || "25"} placeholder="e.g. 25" maxLength={5} className="w-full bg-background border border-border rounded-xl p-3 h-12 text-center" onKeyPress={(e) => { if (!/[0-9]/.test(e.key)) e.preventDefault(); }} />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-muted-foreground mb-2 block uppercase">Awards</label>
-                    <input name="awardsWon" defaultValue={profile?.awardsWon?.replace(/\D/g, '') || "12"} placeholder="e.g. 12" maxLength={5} className="w-full bg-background border border-border rounded-xl p-3 h-12" onKeyPress={(e) => { if (!/[0-9]/.test(e.key)) e.preventDefault(); }} />
+                    <label className="text-[10px] font-bold text-muted-foreground mb-2 block uppercase">Awards</label>
+                    <input name="awardsWon" defaultValue={profile?.awardsWon?.replace(/\D/g, '') || "12"} placeholder="e.g. 12" maxLength={5} className="w-full bg-background border border-border rounded-xl p-3 h-12 text-center" onKeyPress={(e) => { if (!/[0-9]/.test(e.key)) e.preventDefault(); }} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-px bg-border my-8" />
+
+              {/* Social & Contact Section */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 text-primary">
+                  <LogOut size={20} className="rotate-90 stroke-[3]" />
+                  <h3 className="text-lg font-bold tracking-tight uppercase">Social & Contact</h3>
+                </div>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-muted-foreground ml-1 uppercase">Email Address</label>
+                    <input name="email" defaultValue={profile?.email} placeholder="Email" required maxLength={30} className="w-full bg-background border border-border rounded-xl p-3 h-12" onChange={(e) => setCharCounts({...charCounts, email: e.target.value.length})} />
+                    <p className="text-[10px] text-right text-muted-foreground">{charCounts.email || profile?.email?.length || 0}/30</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-muted-foreground ml-1 uppercase">GitHub Profile URL</label>
+                    <input name="githubUrl" defaultValue={profile?.githubUrl} placeholder="https://github.com/..." maxLength={255} className="w-full bg-background border border-border rounded-xl p-3 h-12" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-muted-foreground ml-1 uppercase">LinkedIn Profile URL</label>
+                    <input name="linkedinUrl" defaultValue={profile?.linkedinUrl} placeholder="https://linkedin.com/in/..." maxLength={255} className="w-full bg-background border border-border rounded-xl p-3 h-12" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-muted-foreground ml-1 uppercase">Twitter/X Profile URL</label>
+                    <input name="twitterUrl" defaultValue={profile?.twitterUrl} placeholder="https://twitter.com/..." maxLength={255} className="w-full bg-background border border-border rounded-xl p-3 h-12" />
                   </div>
                 </div>
               </div>
@@ -481,8 +528,29 @@ export default function AdminForm({ profile, projects, experiences }: { profile:
         isOpen={modalOpen}
         onConfirm={confirmDelete}
         onCancel={cancelDelete}
-        message="Are you sure you want to delete this item?"
+        title="Confirm Deletion"
+        message="Are you sure you want to delete this item? This action cannot be undone."
+        confirmLabel="Delete Item"
+        variant="destructive"
       />
+
+      {/* Identity Profile Update Confirm Modal */}
+      <ConfirmModal
+        isOpen={showProfileConfirm}
+        onConfirm={() => {
+          setShowProfileConfirm(false);
+          if (profileFormRef.current) {
+            const fd = new FormData(profileFormRef.current);
+            handleAction(updateProfile, fd, profileFormRef.current);
+          }
+        }}
+        onCancel={() => setShowProfileConfirm(false)}
+        title="Confirm Identity Sync"
+        message="Are you sure you want to update your professional identity? This will sync all changes across your public portfolio."
+        confirmLabel="Sync Now"
+        variant="primary"
+      />
+
       {/* Error Modal */}
       <ErrorModal
         isOpen={errorModalShow}
