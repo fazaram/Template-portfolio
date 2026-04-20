@@ -46,7 +46,7 @@ export default function ImageCropperModal({ isOpen, onClose, onCrop, aspectRatio
   };
 
   return (
-    <Transition grow show={isOpen} as={Fragment}>
+    <Transition show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-[100]" onClose={onClose}>
         <Transition.Child
           as={Fragment}

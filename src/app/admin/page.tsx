@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminPage() {
   const profile = await prisma.profile.findFirst();
   const projects = await prisma.project.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: { order: "asc" },
   });
   const experiences = await prisma.experience.findMany({
     orderBy: { order: "asc" },

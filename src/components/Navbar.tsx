@@ -18,7 +18,7 @@ export default function Navbar({ logo }: { logo: string }) {
     <nav className="fixed top-0 w-full z-50 py-6 backdrop-blur-md border-b border-border transition-all duration-300">
       <div className="container mx-auto px-6 flex justify-between items-center">
         <Link href="/" className="text-2xl font-bold tracking-tighter text-primary">
-          {logo.toUpperCase()}.DEV
+          {logo.toWellFormed()} Porfolio
         </Link>
         <div className="hidden md:flex items-center gap-10 font-medium">
           <a href="#about" className="hover:text-primary transition-colors">About</a>

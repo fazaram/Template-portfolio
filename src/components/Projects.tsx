@@ -28,9 +28,9 @@ export function ProjectCard({ project, index }: { project: Project; index: numbe
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {project.tags.map((tag) => (
-              <span key={tag} className="text-xs font-semibold px-3 py-1 bg-primary/20 backdrop-blur-md text-primary rounded-full">
+              <span key={tag} className="text-xs font-semibold px-3 py-1 bg-primary/20 backdrop-blur-md text-primary rounded-full break-all">
                 {tag}
               </span>
             ))}
@@ -38,8 +38,8 @@ export function ProjectCard({ project, index }: { project: Project; index: numbe
         </div>
       </div>
       <div className="p-8">
-        <h3 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors">{project.title}</h3>
-        <p className="text-muted-foreground mb-6 line-clamp-3">{project.description}</p>
+        <h3 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors break-words">{project.title}</h3>
+        <p className="text-muted-foreground mb-6 line-clamp-3 break-words whitespace-pre-wrap">{project.description}</p>
         {project.link && (
           <a
             href={project.link}

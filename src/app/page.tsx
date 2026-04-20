@@ -15,7 +15,7 @@ async function getData() {
       orderBy: { order: "asc" },
     });
     let experiences = await prisma.experience.findMany({
-      orderBy: { order: "desc" },
+      orderBy: { order: "asc" },
     });
 
     // Seed/Init if empty
@@ -53,7 +53,11 @@ async function getData() {
         avatarUrl: null,
         githubUrl: null,
         linkedinUrl: null,
-        twitterUrl: null
+        twitterUrl: null,
+        yearsExp: "5+",
+        projectsDone: "40+",
+        clientsHappy: "25+",
+        awardsWon: "12"
       },
       projects: [],
       experiences: [],
@@ -72,7 +76,13 @@ export default async function Home() {
         typingTexts={profile!.typingTexts.split(";")} 
         avatarUrl={profile!.avatarUrl}
       />
-      <About bio={profile!.bio} />
+      <About 
+        bio={profile!.bio} 
+        yearsExp={profile!.yearsExp || "5+"}
+        projectsDone={profile!.projectsDone || "40+"}
+        clientsHappy={profile!.clientsHappy || "25+"}
+        awardsWon={profile!.awardsWon || "12"}
+      />
       <Experience experiences={experiences} />
       <Projects projects={projects} />
       <Contact 

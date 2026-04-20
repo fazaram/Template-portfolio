@@ -4,9 +4,13 @@ import { motion } from "framer-motion";
 
 interface AboutProps {
   bio: string;
+  yearsExp: string;
+  projectsDone: string;
+  clientsHappy: string;
+  awardsWon: string;
 }
 
-export default function About({ bio }: AboutProps) {
+export default function About({ bio, yearsExp, projectsDone, clientsHappy, awardsWon }: AboutProps) {
   return (
     <section id="about" className="py-32 bg-secondary/30">
       <div className="container mx-auto px-6">
@@ -19,7 +23,7 @@ export default function About({ bio }: AboutProps) {
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-8">Crafting Digital Excellence</h2>
             <div className="w-20 h-1 bg-primary mb-8 rounded-full" />
-            <p className="text-xl text-muted-foreground leading-relaxed">
+            <p className="text-xl text-muted-foreground leading-relaxed break-words whitespace-pre-wrap">
               {bio}
             </p>
           </motion.div>
@@ -31,20 +35,20 @@ export default function About({ bio }: AboutProps) {
             transition={{ duration: 0.8 }}
             className="grid grid-cols-2 gap-6"
           >
-            <div className="p-8 bg-card border border-border rounded-3xl text-center">
-              <h4 className="text-4xl font-bold text-primary mb-2">5+</h4>
+            <div className="p-8 bg-card border border-border rounded-3xl text-center overflow-hidden">
+              <h4 className="text-4xl font-bold text-primary mb-2 break-all">{yearsExp}</h4>
               <p className="text-muted-foreground font-medium">Years Experience</p>
             </div>
-            <div className="p-8 bg-card border border-border rounded-3xl text-center mt-6">
-              <h4 className="text-4xl font-bold text-primary mb-2">40+</h4>
+            <div className="p-8 bg-card border border-border rounded-3xl text-center mt-6 overflow-hidden">
+              <h4 className="text-4xl font-bold text-primary mb-2 break-all">{projectsDone}</h4>
               <p className="text-muted-foreground font-medium">Projects Done</p>
             </div>
-            <div className="p-8 bg-card border border-border rounded-3xl text-center">
-              <h4 className="text-4xl font-bold text-primary mb-2">25+</h4>
+            <div className="p-8 bg-card border border-border rounded-3xl text-center overflow-hidden">
+              <h4 className="text-4xl font-bold text-primary mb-2 break-all">{clientsHappy}</h4>
               <p className="text-muted-foreground font-medium">Happy Clients</p>
             </div>
-            <div className="p-8 bg-card border border-border rounded-3xl text-center mt-6">
-              <h4 className="text-4xl font-bold text-primary mb-2">12</h4>
+            <div className="p-8 bg-card border border-border rounded-3xl text-center mt-6 overflow-hidden">
+              <h4 className="text-4xl font-bold text-primary mb-2 break-all">{awardsWon}</h4>
               <p className="text-muted-foreground font-medium">Awards Won</p>
             </div>
           </motion.div>

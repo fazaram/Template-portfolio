@@ -34,7 +34,7 @@ export default function Hero({ name, typingTexts, avatarUrl }: HeroProps) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <h1 className="text-5xl md:text-8xl font-bold tracking-tight mb-6 bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">
+              <h1 className="text-5xl md:text-8xl font-bold tracking-tight mb-6 bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent break-words">
                 {name}
               </h1>
               
@@ -46,7 +46,7 @@ export default function Hero({ name, typingTexts, avatarUrl }: HeroProps) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.5 }}
-                    className="text-xl md:text-3xl text-primary font-bold font-outfit"
+                    className="text-xl md:text-3xl text-primary font-bold font-outfit break-words"
                   >
                     {typingTexts[index]}
                   </motion.p>
