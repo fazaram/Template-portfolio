@@ -7,6 +7,7 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: env("DATABASE_URL"),
+    // Provide a random fallback URL for the generation step on Vercel
+    url: process.env.DATABASE_URL || "postgresql://postgres:password@localhost:5432/postgres",
   },
 });
