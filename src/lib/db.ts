@@ -4,7 +4,6 @@ const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
 export const prisma =
   globalForPrisma.prisma ||
-  // @ts-ignore - Prisma 7 type mismatch during build
   new PrismaClient({
     datasources: {
       db: {
@@ -12,6 +11,6 @@ export const prisma =
       },
     },
     log: ["query"],
-  });
+  } as any);
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
