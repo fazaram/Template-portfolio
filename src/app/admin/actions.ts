@@ -68,6 +68,7 @@ export async function updateProfile(formData: FormData) {
         projectsDone: formatStat(formData.get("projectsDone") as string),
         clientsHappy: formatStat(formData.get("clientsHappy") as string),
         awardsWon: formatStat(formData.get("awardsWon") as string),
+        selectedTemplate: formData.get("selectedTemplate") as string || "template1",
         avatarUrl: avatarUrl,
       },
     });

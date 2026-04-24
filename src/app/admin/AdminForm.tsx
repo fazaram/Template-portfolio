@@ -20,6 +20,7 @@ import {
 
 export default function AdminForm({ profile, projects, experiences }: { profile: any; projects: any[]; experiences: any[] }) {
   const [activeTab, setActiveTab] = useState("profile");
+  const [selectedTemplate, setSelectedTemplate] = useState(profile?.selectedTemplate || "template1");
   const [isPending, startTransition] = useTransition();
 
   // Modal state for delete confirmations
@@ -52,6 +53,7 @@ export default function AdminForm({ profile, projects, experiences }: { profile:
   // Sync local state when props change (from server)
   useEffect(() => { setLocalProjects(projects); }, [projects]);
   useEffect(() => { setLocalExperiences(experiences); }, [experiences]);
+  useEffect(() => { setSelectedTemplate(profile?.selectedTemplate || "template1"); }, [profile?.selectedTemplate]);
 
   const triggerCropper = (aspectRatio: number, callback: (file: File) => void) => {
     setCropAspectRatio(aspectRatio);
@@ -279,6 +281,45 @@ export default function AdminForm({ profile, projects, experiences }: { profile:
                   </div>
                 </div>
               </div>
+              <div className="h-px bg-border my-8" />
+
+              {/* Template Selection Section */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 text-primary">
+                  <ImageIcon size={20} className="stroke-[3]" />
+                  <h3 className="text-lg font-bold tracking-tight uppercase">Portfolio Template</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {[
+                    { id: "template1", name: "Modern Minimal", desc: "Clean and focused on typography." },
+                    { id: "template2", name: "Creative Dark", desc: "Bold colors and dynamic animations." },
+                    { id: "template3", name: "Professional Grid", desc: "Structured and informative layout." }
+                  ].map((tpl) => (
+                    <label key={tpl.id} className={`relative flex flex-col p-4 rounded-2xl border-2 transition-all cursor-pointer group ${
+                      selectedTemplate === tpl.id 
+                        ? "border-primary bg-primary/5 shadow-inner" 
+                        : "border-border hover:border-primary/50 bg-card"
+                    }`}>
+                      <input 
+                        type="radio" 
+                        name="selectedTemplate" 
+                        value={tpl.id} 
+                        checked={selectedTemplate === tpl.id}
+                        className="sr-only"
+                        onChange={() => setSelectedTemplate(tpl.id)}
+                      />
+                      <div className="font-bold text-sm mb-1">{tpl.name}</div>
+                      <div className="text-[10px] text-muted-foreground">{tpl.desc}</div>
+                      {selectedTemplate === tpl.id && (
+                        <div className="absolute top-3 right-3 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                          <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                        </div>
+                      )}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
             <button disabled={isPending} className="w-full py-4 bg-primary text-white font-bold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50">
               {isPending ? "Syncing..." : "Update Identity"}
             </button>

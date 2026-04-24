@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 
 interface Experience {
   id: string;
@@ -12,33 +12,57 @@ interface Experience {
 }
 
 export default function Experience({ experiences }: { experiences: Experience[] }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (experiences.length === 0) return null;
+
+  // We keep the main container shell identical for both SSR and Hydrated states to avoid layout shift.
+  return (
+    <section 
+      id="experience" 
+      className="relative" 
+      style={{ height: `${experiences.length * 60}vh` }}
+    >
+      {mounted ? (
+        <ExperienceContent experiences={experiences} />
+      ) : (
+        /* Static placeholder for SSR/Hydration */
+        <div className="sticky top-0 h-screen w-full flex flex-col justify-start py-32 bg-secondary/30">
+          <div className="container mx-auto px-6 mb-20">
+             <div className="text-center">
+                <h2 className="text-4xl md:text-5xl font-bold mb-4">Professional Experience</h2>
+                <div className="w-20 h-1 bg-primary mx-auto rounded-full" />
+             </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ExperienceContent({ experiences }: { experiences: Experience[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Calculate total scroll distance based on experiences
-  // We want to show first 2, then scroll the rest.
-  // Each card is roughly 250px-300px.
+  // Now useScroll runs only on the client after mounting.
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
   });
 
-  // If we have N experiences, and we show 2 at once.
-  // Total distance to scroll the list up is (experiences.length - 2) * cardHeight.
-  // We'll use a percentage based transform for flexibility.
-  // Fixed distance based on item count to ensure it stops exactly at the last item
   const y = useTransform(scrollYProgress, [0, 1], ["0px", `-${Math.max(0, experiences.length - 2) * 450}px`]);
 
-  if (experiences.length === 0) return null;
-
   return (
-    <section id="experience" ref={containerRef} className="relative" style={{ height: `${experiences.length * 60}vh` }}>
+    <div ref={containerRef} className="h-full w-full">
       <div className="sticky top-0 h-screen w-full flex flex-col justify-start overflow-hidden py-32 bg-secondary/30">
         <div className="container mx-auto px-6 mb-20 shrink-0">
           <div className="text-center">
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              animate={{ opacity: 1, y: 0 }}
               className="text-4xl md:text-5xl font-bold mb-4"
             >
               Professional Experience
@@ -60,7 +84,6 @@ export default function Experience({ experiences }: { experiences: Experience[] 
                 viewport={{ amount: 0.5 }}
                 className="group relative flex gap-8 items-start"
               >
-                {/* Simplified Timeline Line & Dot */}
                 <div className="flex flex-col items-center shrink-0 pt-3">
                   <div className="w-12 h-12 rounded-2xl bg-background border-2 border-primary/30 flex items-center justify-center group-hover:border-primary transition-colors text-primary shadow-lg font-bold">
                     {idx + 1}
@@ -95,6 +118,6 @@ export default function Experience({ experiences }: { experiences: Experience[] 
           </motion.div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
